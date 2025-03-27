@@ -20,23 +20,23 @@ const ExpertSystem = () => {
 
   const handleSelect = (key, value) => {
     const newAnswers = { ...answers, [key]: value };
-    setAnswers(newAnswers); // Set new answer
+    setAnswers(newAnswers);
 
-    // If the last step is reached, make a recommendation
-    if (step === 3 || (step === 2 && answers.genre === "Self-help")) {
-      inferRecommendation(newAnswers); // Use the updated answers directly
+    // Determine if we need to show recommendation
+    const isFinalStep = step === 2; // All genres reach the final step at 2
+    if (isFinalStep) {
+      inferRecommendation(newAnswers);
     } else {
       setStep(step + 1);
     }
   };
 
-  const inferRecommendation = (newAnswers) => {
-    // Filter books that match all the answers
-    const results = books.filter((book) => {
-      return Object.entries(newAnswers).every(([key, value]) => book[key] === value);
-    });
+  const inferRecommendation = (selectedAnswers) => {
+    // Filter books that match all chosen options
+    let results = books.filter((book) =>
+      Object.entries(selectedAnswers).every(([key, value]) => book[key] === value)
+    );
 
-    // Set the recommendation to the matching books or display a message if none found
     setRecommendation(results.length > 0 ? results.map((book) => book.title).join(", ") : "No recommendation found");
   };
 
@@ -50,8 +50,8 @@ const ExpertSystem = () => {
           {step === 1 && (
             <>
               <h2>What genre do you prefer?</h2>
-              <button onClick={() => handleSelect("genre", "Fantasy")}>Fiction</button>
-              <button onClick={() => handleSelect("genre", "History")}>Non-Fiction</button>
+              <button onClick={() => handleSelect("genre", "Fantasy")}>Fantasy</button>
+              <button onClick={() => handleSelect("genre", "History")}>History</button>
               <button onClick={() => handleSelect("genre", "Sci-Fi")}>Sci-Fi</button>
               <button onClick={() => handleSelect("genre", "Self-help")}>Self-help</button>
               <button onClick={() => handleSelect("genre", "Mystery")}>Mystery</button>
