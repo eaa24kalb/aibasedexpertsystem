@@ -1,164 +1,144 @@
-import React, { useState } from "react";
+import { useState } from 'react';
+import styles from '../Backward.module.css';
+import readinggif from '../assets/readinggif.gif';
 
-const books = [
-  { title: "Lord of the Rings", genre: "Fantasy", subgenre: "Epic" },
-  { title: "Harry Potter", genre: "Fantasy", subgenre: "Light" },
-  { title: "Sherlock Holmes", genre: "Mystery", era: "Classic" },
-  { title: "Gone Girl", genre: "Mystery", era: "Modern" },
-  { title: "The Martian", genre: "Sci-Fi", type: "Hard" },
-  { title: "Dune", genre: "Sci-Fi", type: "Soft" },
-  { title: "SPQR", genre: "History", era: "Ancient" },
-  { title: "Sapiens", genre: "History", era: "Modern" },
-  { title: "Atomic Habits", genre: "Self-help", focus: "Productivity" },
-  { title: "The Power of Now", genre: "Self-help", focus: "Mindfulness" }
-];
+export default function BackwardChainBook() {
+  const [facts, setFacts] = useState({
+    fiction: null,
+    genre: null,
+    subgenre: null,
+    era: null,
+    focus: null,
+    selectedBook: null,
+    conclusion: null,
+  });
 
-const ExpertSystem = () => {
-  const [step, setStep] = useState(1);
-  const [answers, setAnswers] = useState({});
-  const [recommendation, setRecommendation] = useState(null);
+  const books = [
+    { title: "Lord of the Rings", genre: "Fantasy", type: "Fiction", subgenre: "Epic" },
+    { title: "Harry Potter", genre: "Fantasy", type: "Fiction", subgenre: "Light" },
+    { title: "Sherlock Holmes", genre: "Mystery", type: "Fiction", era: "Classic" },
+    { title: "Gone Girl", genre: "Mystery", type: "Fiction", era: "Modern" },
+    { title: "The Martian", genre: "Sci-Fi", type: "Fiction" },
+    { title: "Dune", genre: "Sci-Fi", type: "Fiction" },
+    { title: "SPQR", genre: "History", type: "Non-fiction", era: "Ancient" },
+    { title: "Sapiens", genre: "History", type: "Non-fiction", era: "Modern" },
+    { title: "Atomic Habits", genre: "Self-help", type: "Non-fiction", focus: "Productivity" },
+    { title: "The Power of Now", genre: "Self-help", type: "Non-fiction", focus: "Mindfulness" }
+  ];
 
-  const possibleBooks = books.map(book => book.title);
-
-  const handleSelect = (key, value) => {
-    const newAnswers = { ...answers, [key]: value };
-    setAnswers(newAnswers);
-
-    if (step === 3) {
-      inferForward(newAnswers);
-    } else {
-      setStep(step + 1);
-    }
-  };
-
-  const inferForward = (answers) => {
-    const result = books.find((book) => {
-      return Object.entries(answers).every(([key, value]) => book[key] === value);
+  const selectBook = (book) => {
+    setFacts({
+      fiction: null,
+      genre: null,
+      subgenre: null,
+      era: null,
+      focus: null,
+      selectedBook: book.title,
+      conclusion: null
     });
-    setRecommendation(result ? result.title : "No recommendation found");
   };
 
-  const inferBackward = (targetBook) => {
-    const book = books.find((b) => b.title === targetBook);
-    if (!book) {
-      setRecommendation("No matching book found");
-      return;
-    }
-    
-    const newAnswers = {};
+  const askQuestion = (fact, question, onYes, onNo) => (
+    <div key={fact} className={styles.questionContainer}>
+      <p className={styles.question}>{question}</p>
+      <div className={styles.buttonGroup}>
+        <button className={styles.buttonYes} onClick={() => { setFacts((prev) => ({ ...prev, [fact]: "Yes" })); onYes(); }}>Yes</button>
+        <button className={styles.buttonNo} onClick={() => { setFacts((prev) => ({ ...prev, [fact]: "No" })); onNo(); }}>No</button>
+      </div>
+    </div>
+  );
 
-    newAnswers["genre"] = book.genre;
-
-    if (book.genre === "Fantasy") {
-      newAnswers["subgenre"] = book.subgenre;
-    }
-    if (book.genre === "Mystery") {
-      newAnswers["era"] = book.era;
-    }
-    if (book.genre === "Sci-Fi") {
-      newAnswers["type"] = book.type;
-    }
-    if (book.genre === "History") {
-      newAnswers["era"] = book.era;
-    }
-    if (book.genre === "Self-help") {
-      newAnswers["focus"] = book.focus;
+  const backwardChain = () => {
+    if (!facts.selectedBook) {
+      return (
+        <div className={styles.selectionContainer}>
+          <h2>Select a book:</h2>
+          <div className={styles.bookList}>
+            {books.map((book, index) => (
+              <button key={index} className={styles.bookButton} onClick={() => selectBook(book)}>
+                {book.title}
+              </button>
+            ))}
+          </div>
+        </div>
+      );
     }
 
-    setAnswers(newAnswers);
-    setRecommendation(book.title);
+    const selectedBook = books.find(b => b.title === facts.selectedBook);
+
+    if (facts.fiction === null) {
+      return askQuestion(
+        "fiction",
+        "Do you want to read fiction?",
+        () => {
+          if (selectedBook.type !== "Fiction") {
+            setFacts((prev) => ({ ...prev, conclusion: `It's not a match 💔. You prefer fiction, but "${selectedBook.title}" is non-fiction.` }));
+          }
+        },
+        () => {
+          if (selectedBook.type === "Fiction") {
+            setFacts((prev) => ({ ...prev, conclusion: `It's not a match 💔. You prefer non-fiction, but "${selectedBook.title}" is fiction.` }));
+          }
+        }
+      );
+    }
+
+    if (facts.conclusion) {
+      return <p className={styles.conclusion}>{facts.conclusion}</p>;
+    }
+
+    if (facts.genre === null) {
+      return askQuestion(
+        "genre",
+        `Do you want to read ${selectedBook.genre.toLowerCase()}?`,
+        () => {},
+        () => setFacts((prev) => ({ ...prev, conclusion: `It's not a match 💔. You don't want to read ${selectedBook.genre.toLowerCase()}.` }))
+      );
+    }
+
+    if (selectedBook.genre === "Fantasy" && facts.subgenre === null) {
+      return askQuestion(
+        "subgenre",
+        `Do you want to read ${selectedBook.subgenre.toLowerCase()} fantasy?`,
+        () => {},
+        () => setFacts((prev) => ({ ...prev, conclusion: `It's not a match 💔. You don't want to read ${selectedBook.subgenre.toLowerCase()} fantasy.` }))
+      );
+    }
+
+    if (selectedBook.genre === "Mystery" && facts.era === null) {
+      return askQuestion(
+        "era",
+        `Do you want to read a ${selectedBook.era.toLowerCase()} mystery?`,
+        () => {},
+        () => setFacts((prev) => ({ ...prev, conclusion: `It's not a match 💔. You prefer a different type of mystery. This one is ${selectedBook.era.toLowerCase()}.` }))
+      );
+    }
+
+    let reasons = [`It's a ${selectedBook.type.toLowerCase()} book.`];
+
+    if (selectedBook.genre) reasons.push(`It's a ${selectedBook.genre.toLowerCase()} book.`);
+    if (selectedBook.subgenre) reasons.push(`It's specifically ${selectedBook.subgenre.toLowerCase()} fantasy.`);
+    if (selectedBook.era) reasons.push(`It covers ${selectedBook.era.toLowerCase()} history/mystery.`);
+    if (selectedBook.focus) reasons.push(`It focuses on ${selectedBook.focus.toLowerCase()}.`);
+
+    return (
+      <div className={styles.resultContainer}>
+        <h2 className={styles.matchTitle}>Yayy, it's a match!❤️</h2>
+        <h2 className={styles.bookTitle}>You should definitely give "{selectedBook.title}" a chance!</h2>
+        <img src={readinggif} alt="Reading Gif" style={{width: "300px"}}/>
+        <p className={styles.reasonsHeader}>Here’s why:</p>
+        <ul className={styles.reasonsList}>
+          {reasons.map((reason, index) => <li key={index}>{reason}</li>)}
+        </ul>
+      </div>
+    );
   };
 
   return (
-    <div>
-      <h1>Book Checker</h1>
-      {recommendation ? (
-        <h2>Recommended Book: {recommendation}</h2>
-      ) : (
-        <>
-          {step === 1 && (
-            <>
-              <h2>Do you prefer Fiction or Non-Fiction?</h2>
-              <button onClick={() => handleSelect("genre", "Fantasy")}>Fiction</button>
-              <button onClick={() => handleSelect("genre", "History")}>Non-Fiction</button>
-              <button onClick={() => handleSelect("genre", "Sci-Fi")}>Sci-Fi</button>
-              <button onClick={() => handleSelect("genre", "Self-help")}>Self-help</button>
-              <button onClick={() => handleSelect("genre", "Mystery")}>Mystery</button>
-            </>
-          )}
-
-          {step === 2 && answers.genre === "Fantasy" && (
-            <>
-              <h2>What type of Fantasy?</h2>
-              <button onClick={() => handleSelect("subgenre", "Epic")}>Epic</button>
-              <button onClick={() => handleSelect("subgenre", "Light")}>Light</button>
-            </>
-          )}
-
-          {step === 2 && answers.genre === "History" && (
-            <>
-              <h2>Do you prefer Ancient or Modern history?</h2>
-              <button onClick={() => handleSelect("era", "Ancient")}>Ancient</button>
-              <button onClick={() => handleSelect("era", "Modern")}>Modern</button>
-            </>
-          )}
-
-          {step === 2 && answers.genre === "Sci-Fi" && (
-            <>
-              <h2>What type of Sci-Fi?</h2>
-              <button onClick={() => handleSelect("type", "Hard")}>Hard</button>
-              <button onClick={() => handleSelect("type", "Soft")}>Soft</button>
-            </>
-          )}
-
-          {step === 2 && answers.genre === "Mystery" && (
-            <>
-              <h2>Do you prefer Classic or Modern Mystery?</h2>
-              <button onClick={() => handleSelect("era", "Classic")}>Classic</button>
-              <button onClick={() => handleSelect("era", "Modern")}>Modern</button>
-            </>
-          )}
-
-          {step === 2 && answers.genre === "Self-help" && (
-            <>
-              <h2>What do you want to focus on?</h2>
-              <button onClick={() => handleSelect("focus", "Productivity")}>Productivity</button>
-              <button onClick={() => handleSelect("focus", "Mindfulness")}>Mindfulness</button>
-            </>
-          )}
-
-          {step === 3 && answers.genre === "Fantasy" && answers.subgenre === "Epic" && (
-            <>
-              <h2>Do you prefer a long series or a single book?</h2>
-              <button onClick={() => handleSelect("length", "Series")}>Series</button>
-              <button onClick={() => handleSelect("length", "Single Book")}>Single Book</button>
-            </>
-          )}
-
-          {step === 3 && answers.genre === "Sci-Fi" && answers.type === "Hard" && (
-            <>
-              <h2>Do you prefer books with deep scientific concepts or more action-focused?</h2>
-              <button onClick={() => handleSelect("focus", "Scientific")}>Scientific</button>
-              <button onClick={() => handleSelect("focus", "Action")}>Action</button>
-            </>
-          )}
-
-          {step === 3 && answers.genre === "Mystery" && answers.era === "Classic" && (
-            <>
-              <h2>Do you prefer a detective or a private investigator?</h2>
-              <button onClick={() => handleSelect("detectiveType", "Detective")}>Detective</button>
-              <button onClick={() => handleSelect("detectiveType", "Private Investigator")}>Private Investigator</button>
-            </>
-          )}
-        </>
-      )}
-
-      <h2>Test Backward Chaining</h2>
-      {possibleBooks.map((book) => (
-        <button key={book} onClick={() => inferBackward(book)}>{book}</button>
-      ))}
+    <div className={styles.container}>
+      <h1 className={styles.title}>Backward Chaining: Book Checker</h1>
+      <p className={styles.description}>Do you already know what you want to read? Check if the book is a match for you.</p>
+      {backwardChain()}
     </div>
   );
-};
-
-export default ExpertSystem;
+}

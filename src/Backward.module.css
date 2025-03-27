@@ -1,0 +1,78 @@
+.container {
+    text-align: center;
+    padding: 20px;
+  }
+  
+  .title {
+    font-size: 24px;
+    font-weight: bold;
+  }
+  
+  .description {
+    margin-bottom: 20px;
+  }
+  
+  .selectionContainer, .resultContainer {
+    margin-top: 20px;
+  }
+  
+  .bookList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+  }
+  
+  .bookButton {
+    padding: 10px 15px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  .questionContainer {
+    margin-top: 20px;
+  }
+  
+  .question {
+    font-size: 18px;
+    font-weight: bold;
+  }
+  
+  .buttonGroup {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 10px;
+  }
+  
+  .buttonYes, .buttonNo {
+    padding: 10px 15px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  .buttonYes {
+    background: #4CAF50;
+    color: white;
+  }
+  
+  .buttonNo {
+    background: #f44336;
+    color: white;
+  }
+  
+  .conclusion {
+    color: red;
+    font-weight: bold;
+  }
+  
+  .reasonsList {
+    text-align: left;
+    margin: 0 auto;
+    width: fit-content;
+  }
+  
